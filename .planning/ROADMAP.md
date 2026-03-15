@@ -28,7 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running `python pipeline/data/ephemeris.py` produces a CSV of daily planetary positions for 1900–2026 using pysweph with all dates converted to UTC before Julian Day calculation
   3. Planetary aspects (conjunction, opposition, trine, etc.) and Vedic nakshatra positions are computed and written to the ephemeris output
   4. A spot-check validation script confirms ephemeris output matches JPL Horizons for at least 10 dates, with results logged to a file for audit
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Initialize Python project and download USGS M5.5+ earthquake catalog (1900-2026) with decade pagination
+- [ ] 01-02-PLAN.md — Compute daily planetary positions, aspects, and Vedic nakshatras using pysweph for 1900-2026
+- [ ] 01-03-PLAN.md — Validate ephemeris output against JPL Horizons for 10 spot-check dates
 
 ### Phase 2: Feature Engineering
 **Goal**: A single deterministic feature matrix CSV exists covering 1900–2026 with ~265 columns, correctly encoded, and with all scalers/encoders fit exclusively on pre-2000 data
@@ -71,7 +76,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Pipeline | 0/TBD | Not started | - |
+| 1. Data Pipeline | 0/3 | Not started | - |
 | 2. Feature Engineering | 0/TBD | Not started | - |
 | 3. Model Training and Prediction Export | 0/TBD | Not started | - |
 | 4. Web App and Deployment | 0/TBD | Not started | - |
