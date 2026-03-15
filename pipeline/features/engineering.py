@@ -97,18 +97,18 @@ def build_active_cells(usgs_df: pd.DataFrame) -> set[tuple[int, int]]:
 # ---------------------------------------------------------------------------
 
 
-def extract_country(place: str | None) -> str:
+def extract_country(place) -> str:
     """Extract country from a USGS place string.
 
     Rules:
-        - If place is None or empty string → return "Unknown"
+        - If place is None, NaN, or empty string → return "Unknown"
         - If place contains a comma → return the last token after the final comma (stripped)
         - Otherwise → return place as-is (e.g. "Bismarck Sea")
-
-    Raises:
-        NotImplementedError: Until Wave 1 implements this function.
     """
-    raise NotImplementedError("extract_country not yet implemented (Wave 1)")
+    if place is None or (isinstance(place, float) and np.isnan(place)) or str(place).strip() == "":
+        return "Unknown"
+    parts = str(place).split(",")
+    return parts[-1].strip()
 
 
 # ---------------------------------------------------------------------------
@@ -126,11 +126,45 @@ def build_eq_index(usgs_df: pd.DataFrame) -> pd.Series:
 
     Returns:
         pd.Series with MultiIndex (date, grid_lat, grid_lon) and integer value 1.
-
-    Raises:
-        NotImplementedError: Until Wave 1 implements this function.
     """
-    raise NotImplementedError("build_eq_index not yet implemented (Wave 1)")
+    df = usgs_df.copy()
+    # Use dt.date to get datetime.date objects (not Timestamps) for consistent indexing
+    df["date"] = pd.to_datetime(df["time"]).dt.date
+    df["grid_lat"] = (np.floor(df["latitude"].to_numpy() / 5) * 5).astype(int).tolist()
+    df["grid_lon"] = (np.floor(df["longitude"].to_numpy() / 5) * 5).astype(int).tolist()
+    df = df.drop_duplicates(subset=["date", "grid_lat", "grid_lon"])
+    # Use pd.Index with dtype=object to preserve datetime.date type (not coerce to Timestamp)
+    index = pd.MultiIndex.from_arrays(
+        [
+            pd.Index(df["date"].tolist(), dtype=object),
+            pd.Index(df["grid_lat"].tolist()),
+            pd.Index(df["grid_lon"].tolist()),
+        ],
+        names=["date", "grid_lat", "grid_lon"],
+    )
+    return pd.Series(1, index=index, name="EQIndicator")
+
+
+def build_country_map(usgs_df: pd.DataFrame) -> dict[tuple[int, int], str]:
+    """Build a mapping from (grid_lat, grid_lon) cells to the most common country label.
+
+    Args:
+        usgs_df: DataFrame with 'latitude', 'longitude', and 'place' columns.
+
+    Returns:
+        Dict mapping (grid_lat, grid_lon) -> most common country string.
+    """
+    df = usgs_df.copy()
+    df["grid_lat"] = (np.floor(df["latitude"].to_numpy() / 5) * 5).astype(int).tolist()
+    df["grid_lon"] = (np.floor(df["longitude"].to_numpy() / 5) * 5).astype(int).tolist()
+    df["country"] = df["place"].apply(extract_country)
+    country_map = (
+        df.groupby(["grid_lat", "grid_lon"])["country"]
+        .agg(lambda x: x.value_counts().index[0])
+        .to_dict()
+    )
+    # Convert numpy int keys to Python int tuples
+    return {(int(k[0]), int(k[1])): v for k, v in country_map.items()}
 
 
 # ---------------------------------------------------------------------------
