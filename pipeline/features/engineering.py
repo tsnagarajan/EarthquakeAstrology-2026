@@ -422,3 +422,81 @@ def downsample_negatives(
     negatives_sampled = negatives.sample(n=n_sample, random_state=random_state)
 
     return pd.concat([positives, negatives_sampled]).reset_index(drop=True)
+
+
+# ---------------------------------------------------------------------------
+# Matrix chunk builder
+# ---------------------------------------------------------------------------
+
+
+def active_cells_list(active_cells_set: set) -> list[tuple[int, int]]:
+    """Convert an active-cells set to a sorted list for deterministic iteration.
+
+    Args:
+        active_cells_set: Set of (grid_lat, grid_lon) tuples.
+
+    Returns:
+        List of (grid_lat, grid_lon) tuples sorted by (grid_lat, grid_lon).
+    """
+    return sorted(active_cells_set)
+
+
+def build_matrix_chunk(
+    ephe_row: pd.Series,
+    active_cells: list[tuple[int, int]],
+    eq_index: pd.Series,
+    country_map: dict,
+) -> pd.DataFrame:
+    """Build one chunk of the training/test matrix for a single ephemeris date.
+
+    Broadcasts the encoded ephemeris row to all active grid cells, then assigns
+    EQIndicator=1 for cells that had a qualifying earthquake on that date.
+
+    The ephemeris DataFrame must be date-indexed before iterating: callers should
+    run ``ephe_df = ephe_df.set_index('date')`` so that ``ephe_row.name`` is the date.
+
+    Args:
+        ephe_row: One row from an encoded ephemeris DataFrame (pd.Series).
+                  Row name (index) must be the date (str or Timestamp).
+        active_cells: List of (grid_lat, grid_lon) int tuples.
+        eq_index: pd.Series from build_eq_index — MultiIndex (date, grid_lat, grid_lon),
+                  value 1 for cells with a qualifying earthquake on that date.
+        country_map: Dict mapping (grid_lat, grid_lon) → country name string.
+
+    Returns:
+        DataFrame with len(active_cells) rows, columns from ephe_row plus:
+        grid_lat (int), grid_lon (int), country (str), EQIndicator (int 0/1), date.
+        Rows are sorted by (grid_lat, grid_lon).
+    """
+    n = len(active_cells)
+
+    # Normalize row date to datetime.date for consistent eq_index lookup
+    # (ephe_row.name may be a str, pd.Timestamp, or datetime.date depending on caller)
+    from datetime import date as date_type
+    raw_name = ephe_row.name
+    if isinstance(raw_name, date_type):
+        row_date = raw_name
+    else:
+        row_date = pd.Timestamp(raw_name).date()
+
+    # Broadcast: repeat the encoded ephemeris row n times (exclude date if present as col)
+    data = {col: [ephe_row[col]] * n for col in ephe_row.index if col != "date"}
+    df = pd.DataFrame(data)
+
+    cell_arr = np.array(active_cells)
+    df["grid_lat"] = cell_arr[:, 0].astype(int)
+    df["grid_lon"] = cell_arr[:, 1].astype(int)
+    df["country"] = [country_map.get((r, c), "Unknown") for r, c in active_cells]
+    df["date"] = row_date
+
+    # Assign EQIndicator: 1 if (date, grid_lat, grid_lon) in eq_index, else 0
+    idx = pd.MultiIndex.from_arrays(
+        [
+            pd.Index([row_date] * n, dtype=object),
+            df["grid_lat"].values,
+            df["grid_lon"].values,
+        ]
+    )
+    df["EQIndicator"] = eq_index.reindex(idx).fillna(0).astype(int).values
+
+    return df.sort_values(["grid_lat", "grid_lon"]).reset_index(drop=True)

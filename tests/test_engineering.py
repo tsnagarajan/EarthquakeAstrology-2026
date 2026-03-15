@@ -518,10 +518,7 @@ class TestBuildMatrixChunk:
 
     def _make_eq_index_for_date(self, date_val, cells_with_eq):
         """Build a minimal eq_index with EQIndicator=1 for given date+cells."""
-        import numpy as np
-        from datetime import date as date_type
         if isinstance(date_val, str):
-            import pandas as pd
             date_val = pd.Timestamp(date_val).date()
 
         dates = [date_val] * len(cells_with_eq)
