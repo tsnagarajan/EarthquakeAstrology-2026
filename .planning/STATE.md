@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-15T22:07:07.692Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-15T22:14:43.986Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 33
 ---
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-feature-engineering P01 | 21 | 2 tasks | 6 files |
 | Phase 02-feature-engineering P02 | 4 | 2 tasks | 2 files |
 | Phase 02-feature-engineering P03 | 25 | 2 tasks | 2 files |
+| Phase 02-feature-engineering P04 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [Phase 02-feature-engineering]: tolist() for numpy int conversion: .astype(int).tolist() ensures Python native int in tuples so isinstance checks pass
 - [Phase 02-feature-engineering]: encode_ephemeris PRESERVES nakshatra string columns — only drops lon, sign_num, sign, nakshatra_num raw columns; nakshatra strings remain for apply_nakshatra_encoding in Plan 05
 - [Phase 02-feature-engineering]: test_text_nakshatra_absent refactored to test full encode_ephemeris + apply_nakshatra_encoding pipeline; _make_full_nakshatra_df() helper added for 351-column encoder vocabulary
+- [Phase 02-feature-engineering]: build_matrix_chunk normalizes ephe_row.name to datetime.date before eq_index reindex to handle str/Timestamp index inputs
+- [Phase 02-feature-engineering]: active_cells_list helper added to convert active-cells set to deterministic sorted list for Plan 05 chunked iteration
+- [Phase 02-feature-engineering]: downsample_negatives clamps with min(ratio*n_pos, n_neg) to handle small negative pools gracefully
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T22:07:07.687Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-15T22:14:43.982Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
