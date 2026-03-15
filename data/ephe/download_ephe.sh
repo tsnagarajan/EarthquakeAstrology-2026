@@ -5,7 +5,9 @@
 set -euo pipefail
 
 EPHE_DIR="$(dirname "$0")"
-BASE_URL="https://www.astro.com/ftp/swisseph/ephe"
+# Files moved from AstroDienst FTP to GitHub (as of 2024)
+# See: https://www.astro.com/ftp/swisseph/ for current download locations
+BASE_URL="https://raw.githubusercontent.com/aloistr/swisseph/master/ephe"
 
 # Required files for 1900-2026 planetary positions
 FILES=(
@@ -20,7 +22,7 @@ for f in "${FILES[@]}"; do
         echo "Already present: $f"
     else
         echo "Downloading $f ..."
-        curl -f -o "$EPHE_DIR/$f" "$BASE_URL/$f"
+        curl -fL -o "$EPHE_DIR/$f" "$BASE_URL/$f"
     fi
 done
 
