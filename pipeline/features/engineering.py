@@ -353,17 +353,33 @@ def load_encoder(path: str):
 
 
 def assert_no_temporal_leakage(train_dates, test_dates) -> None:
-    """Assert that no test date appears in the training set.
+    """Assert that training data is strictly before 2000-01-01 and test data is >= 2000-01-01.
+
+    The 2000-01-01 split date is the hard temporal boundary for this project:
+    train on 1900-1999, test on 2000-2026.
 
     Args:
-        train_dates: Iterable of dates in the training split.
+        train_dates: Iterable of dates (datetime.date, pd.Timestamp, or str) in the training split.
         test_dates: Iterable of dates in the test split.
 
     Raises:
-        AssertionError: If any test date is present in train_dates.
-        NotImplementedError: Until Wave 2 implements this function.
+        AssertionError: If max(train_dates) >= 2000-01-01 (training data leaks into test era).
+        AssertionError: If min(test_dates) < 2000-01-01 (test data contains pre-2000 rows).
     """
-    raise NotImplementedError("assert_no_temporal_leakage not yet implemented (Wave 2)")
+    from datetime import date as date_type
+
+    SPLIT = date_type(2000, 1, 1)
+    max_train = pd.to_datetime(pd.Series(list(train_dates))).max().date()
+    min_test = pd.to_datetime(pd.Series(list(test_dates))).min().date()
+
+    assert max_train < SPLIT, (
+        f"Temporal leakage: training set contains rows on/after 2000-01-01. "
+        f"max(train.date) = {max_train}"
+    )
+    assert min_test >= SPLIT, (
+        f"Temporal leakage: test set contains rows before 2000-01-01 (pre-train era). "
+        f"min(test.date) = {min_test}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -372,23 +388,37 @@ def assert_no_temporal_leakage(train_dates, test_dates) -> None:
 
 
 def downsample_negatives(
-    df: pd.DataFrame, ratio: int, random_state: int
+    df: pd.DataFrame, ratio: int = 10, random_state: int = 42
 ) -> pd.DataFrame:
     """Downsample negative (EQIndicator=0) rows to achieve target positive:negative ratio.
 
     All positive rows are preserved. Negatives are randomly sampled without replacement
-    to yield len(positives) * ratio negative rows.
+    to yield min(ratio * n_positives, n_negatives) negative rows.
+
+    The caller must ensure df is restricted to the pre-2000 training pool before calling.
+    This function does not enforce the temporal boundary itself.
 
     Args:
         df: DataFrame with 'EQIndicator' column (1=positive, 0=negative).
-        ratio: Target number of negatives per positive (e.g. 10 → 10:1).
-        random_state: Random seed for reproducibility.
+        ratio: Target number of negatives per positive (e.g. 10 → 10:1). Default 10.
+        random_state: Random seed for reproducibility. Default 42.
 
     Returns:
-        DataFrame with all positives and downsampled negatives,
-        total rows = len(positives) * (ratio + 1).
+        DataFrame with all positives and downsampled negatives, reset index.
+        Total rows = n_positives + min(ratio * n_positives, n_negatives).
 
     Raises:
-        NotImplementedError: Until Wave 2 implements this function.
+        ValueError: If df does not contain an 'EQIndicator' column.
     """
-    raise NotImplementedError("downsample_negatives not yet implemented (Wave 2)")
+    if "EQIndicator" not in df.columns:
+        raise ValueError(
+            "DataFrame must contain an 'EQIndicator' column (1=positive, 0=negative)."
+        )
+
+    positives = df[df["EQIndicator"] == 1]
+    negatives = df[df["EQIndicator"] == 0]
+
+    n_sample = min(ratio * len(positives), len(negatives))
+    negatives_sampled = negatives.sample(n=n_sample, random_state=random_state)
+
+    return pd.concat([positives, negatives_sampled]).reset_index(drop=True)
