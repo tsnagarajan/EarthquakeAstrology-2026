@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Data Pipeline | 3/3 | Complete   | 2026-03-15 |
-| 2. Feature Engineering | 2/5 | In Progress|  |
+| 2. Feature Engineering | 3/5 | In Progress|  |
 | 3. Model Training and Prediction Export | 0/TBD | Not started | - |
 | 4. Web App and Deployment | 0/TBD | Not started | - |

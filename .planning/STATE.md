@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-15T21:45:30.974Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-15T22:07:07.692Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 33
 ---
 
@@ -56,6 +56,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01-data-pipeline P03 | 45 | 2 tasks | 4 files |
 | Phase 02-feature-engineering P01 | 21 | 2 tasks | 6 files |
 | Phase 02-feature-engineering P02 | 4 | 2 tasks | 2 files |
+| Phase 02-feature-engineering P03 | 25 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 02-feature-engineering]: xfail markers used over skip so xpass auto-detection signals when stubs are implemented
 - [Phase 02-feature-engineering]: object-dtype date index: pd.Index(dates, dtype=object) used for MultiIndex date level to preserve datetime.date type and prevent pandas Timestamp coercion
 - [Phase 02-feature-engineering]: tolist() for numpy int conversion: .astype(int).tolist() ensures Python native int in tuples so isinstance checks pass
+- [Phase 02-feature-engineering]: encode_ephemeris PRESERVES nakshatra string columns — only drops lon, sign_num, sign, nakshatra_num raw columns; nakshatra strings remain for apply_nakshatra_encoding in Plan 05
+- [Phase 02-feature-engineering]: test_text_nakshatra_absent refactored to test full encode_ephemeris + apply_nakshatra_encoding pipeline; _make_full_nakshatra_df() helper added for 351-column encoder vocabulary
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:45:30.970Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-03-15T22:07:07.687Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
