@@ -12,7 +12,7 @@ The project builds in four sequential phases. Phase 1 establishes the two raw da
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Pipeline** - Fetch and validate USGS earthquake records and Swiss Ephemeris planetary positions for 1900–2026
+- [x] **Phase 1: Data Pipeline** - Fetch and validate USGS earthquake records and Swiss Ephemeris planetary positions for 1900–2026 (completed 2026-03-15)
 - [ ] **Phase 2: Feature Engineering** - Build the full ~265-column feature matrix with cyclical encoding, aspects, nakshatras, and strict no-leakage temporal split
 - [ ] **Phase 3: Model Training and Prediction Export** - Train classifier on 1900–2000 data, evaluate on 2000–2026 holdout, export predictions.json for March–December 2026
 - [ ] **Phase 4: Web App and Deployment** - Build Next.js calendar app consuming predictions.json and deploy to Vercel
@@ -76,7 +76,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Pipeline | 2/3 | In Progress|  |
+| 1. Data Pipeline | 3/3 | Complete   | 2026-03-15 |
 | 2. Feature Engineering | 0/TBD | Not started | - |
 | 3. Model Training and Prediction Export | 0/TBD | Not started | - |
 | 4. Web App and Deployment | 0/TBD | Not started | - |

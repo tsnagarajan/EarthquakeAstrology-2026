@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-data-pipeline/01-02-PLAN.md — Swiss Ephemeris computation script with 13-planet positions, 390 aspect columns, and Vedic nakshatras
-last_updated: "2026-03-15T16:45:58.762Z"
+stopped_at: "Completed 01-data-pipeline/01-03-PLAN.md — paused at checkpoint:human-verify for Phase 1 final output verification"
+last_updated: "2026-03-15T16:53:49.772Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 33
 ---
 
@@ -52,6 +52,7 @@ Progress: [███░░░░░░░] 33%
 *Updated after each plan completion*
 | Phase 01-data-pipeline P01 | 11 | 2 tasks | 9 files |
 | Phase 01-data-pipeline P02 | 5 | 2 tasks | 4 files |
+| Phase 01-data-pipeline P03 | 5 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 01-data-pipeline]: pysweph 2.10.3.6 calc_ut returns 3-tuple (xx, iflag, serr) not 2-tuple — all callers must unpack 3 values
 - [Phase 01-data-pipeline]: Swiss Ephemeris .se1 files moved to GitHub (aloistr/swisseph) — AstroDienst FTP URL 404s; download script updated
 - [Phase 01-data-pipeline]: Chiron (swe.CHIRON) requires seas_18.se1 — no Moshier fallback for asteroid bodies; file must be present before running ephemeris.py
+- [Phase 01-data-pipeline]: dotenv import made optional in validate_ephemeris.py (soft try/except) — validation script has no env var dependencies; dotenv only needed in ephemeris.py
+- [Phase 01-data-pipeline]: Exit code 2 for missing ephemeris CSV — distinguishes setup errors from accuracy failures for CI pipelines
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:45:58.758Z
-Stopped at: Completed 01-data-pipeline/01-02-PLAN.md — Swiss Ephemeris computation script with 13-planet positions, 390 aspect columns, and Vedic nakshatras
+Last session: 2026-03-15T16:53:49.765Z
+Stopped at: Completed 01-data-pipeline/01-03-PLAN.md — paused at checkpoint:human-verify for Phase 1 final output verification
 Resume file: None

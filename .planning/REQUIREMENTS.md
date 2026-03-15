@@ -11,7 +11,7 @@
 - [x] **DATA-02**: System computes planetary positions (degrees, signs, retrograde status) for all dates 1900–2026 using pysweph (Swiss Ephemeris) locally — no Astro Seek scraping dependency
 - [x] **DATA-03**: System computes planetary aspects (conjunction, opposition, trine, etc.) between all major planets for each date
 - [x] **DATA-04**: System computes Vedic nakshatra (star) positions for key planets using sidereal calculation
-- [ ] **DATA-05**: Ephemeris output is validated against a known reference (JPL Horizons) for at least 10 spot-check dates to confirm accuracy
+- [x] **DATA-05**: Ephemeris output is validated against a known reference (JPL Horizons) for at least 10 spot-check dates to confirm accuracy
 
 ### Feature Engineering
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
-| DATA-05 | Phase 1 | Pending |
+| DATA-05 | Phase 1 | Complete |
 | FEAT-01 | Phase 2 | Pending |
 | FEAT-02 | Phase 2 | Pending |
 | FEAT-03 | Phase 2 | Pending |
