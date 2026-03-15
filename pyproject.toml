@@ -13,6 +13,7 @@ dependencies = [
     "scikit-learn>=1.8.0",
     "xgboost>=2.0",
     "imbalanced-learn>=0.14.1",
+    "pyarrow>=23.0.1",
 ]
 
 [project.optional-dependencies]
