@@ -15,11 +15,11 @@
 
 ### Feature Engineering
 
-- [ ] **FEAT-01**: Feature matrix is constructed with planetary degrees, retrograde flags, zodiac signs (one-hot encoded), house placements, aspects, and nakshatras — matching the ~265-column structure of the existing notebooks
-- [ ] **FEAT-02**: All cyclical features (degrees 0–360, zodiac signs 1–12) are encoded using sin/cos transformation to prevent false distance between Aries (1) and Pisces (12)
-- [ ] **FEAT-03**: Train/test split is enforced at 2000-01-01 — all scalers, encoders, and samplers are fit exclusively on pre-2000 data (no temporal leakage)
-- [ ] **FEAT-04**: EQIndicator target variable is assigned as 1 for M5.5+ earthquake dates, 0 for non-earthquake dates
-- [ ] **FEAT-05**: Features include regional geographic identifiers (country, lat/long grid cell) as prediction dimensions
+- [x] **FEAT-01**: Feature matrix is constructed with planetary degrees, retrograde flags, zodiac signs (one-hot encoded), house placements, aspects, and nakshatras — matching the ~265-column structure of the existing notebooks
+- [x] **FEAT-02**: All cyclical features (degrees 0–360, zodiac signs 1–12) are encoded using sin/cos transformation to prevent false distance between Aries (1) and Pisces (12)
+- [x] **FEAT-03**: Train/test split is enforced at 2000-01-01 — all scalers, encoders, and samplers are fit exclusively on pre-2000 data (no temporal leakage)
+- [x] **FEAT-04**: EQIndicator target variable is assigned as 1 for M5.5+ earthquake dates, 0 for non-earthquake dates
+- [x] **FEAT-05**: Features include regional geographic identifiers (country, lat/long grid cell) as prediction dimensions
 
 ### ML Model
 
@@ -84,11 +84,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | DATA-05 | Phase 1 | Complete |
-| FEAT-01 | Phase 2 | Pending |
-| FEAT-02 | Phase 2 | Pending |
-| FEAT-03 | Phase 2 | Pending |
-| FEAT-04 | Phase 2 | Pending |
-| FEAT-05 | Phase 2 | Pending |
+| FEAT-01 | Phase 2 | Complete |
+| FEAT-02 | Phase 2 | Complete |
+| FEAT-03 | Phase 2 | Complete |
+| FEAT-04 | Phase 2 | Complete |
+| FEAT-05 | Phase 2 | Complete |
 | MODEL-01 | Phase 3 | Pending |
 | MODEL-02 | Phase 3 | Pending |
 | MODEL-03 | Phase 3 | Pending |
