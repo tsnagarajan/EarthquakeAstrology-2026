@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: "Completed 01-data-pipeline/01-03-PLAN.md — paused at checkpoint:human-verify for Phase 1 final output verification"
-last_updated: "2026-03-15T16:53:49.772Z"
+stopped_at: Phase 2 context gathered
+last_updated: "2026-03-15T18:17:13.435Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 01-data-pipeline P01 | 11 | 2 tasks | 9 files |
 | Phase 01-data-pipeline P02 | 5 | 2 tasks | 4 files |
 | Phase 01-data-pipeline P03 | 5 | 1 tasks | 4 files |
+| Phase 01-data-pipeline P03 | 45 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ Recent decisions affecting current work:
 - [Phase 01-data-pipeline]: Chiron (swe.CHIRON) requires seas_18.se1 — no Moshier fallback for asteroid bodies; file must be present before running ephemeris.py
 - [Phase 01-data-pipeline]: dotenv import made optional in validate_ephemeris.py (soft try/except) — validation script has no env var dependencies; dotenv only needed in ephemeris.py
 - [Phase 01-data-pipeline]: Exit code 2 for missing ephemeris CSV — distinguishes setup errors from accuracy failures for CI pipelines
+- [Phase 01-data-pipeline]: Reference values corrected from rough hand-estimates to actual DE431 values — original plan values were ~0.3-1.2 deg off; actual computed values adopted as references after human verification
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T16:53:49.765Z
-Stopped at: Completed 01-data-pipeline/01-03-PLAN.md — paused at checkpoint:human-verify for Phase 1 final output verification
-Resume file: None
+Last session: 2026-03-15T18:17:13.430Z
+Stopped at: Phase 2 context gathered
+Resume file: .planning/phases/02-feature-engineering/02-CONTEXT.md

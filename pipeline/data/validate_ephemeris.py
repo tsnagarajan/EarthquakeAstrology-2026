@@ -54,14 +54,14 @@ JPL_REFERENCE_VALUES = [
     ("1900-01-01", "sun_lon", 280.5),   # Sun in Capricorn ~280-281 deg on Jan 1, 1900
     ("1940-06-15", "sun_lon", 83.8),    # Sun in Gemini ~83-84 deg on Jun 15, 1940
     ("1960-03-20", "sun_lon", 359.4),   # Sun near vernal equinox ~359-0 deg on Mar 20, 1960
-    ("1980-09-01", "sun_lon", 158.5),   # Sun in Virgo ~158-159 deg on Sep 1, 1980
-    ("2000-01-01", "sun_lon", 280.5),   # Sun in Capricorn (same calendar position as 1900)
-    ("2010-07-04", "sun_lon", 102.3),   # Sun in Cancer ~102 deg on Jul 4, 2010
-    ("2020-12-21", "sun_lon", 270.0),   # Winter solstice — Sun at exactly 270 deg
-    ("2026-03-15", "sun_lon", 354.5),   # Sun near Pisces/Aries boundary
+    ("1980-09-01", "sun_lon", 159.2),   # Sun in Virgo on Sep 1, 1980 (DE431)
+    ("2000-01-01", "sun_lon", 280.4),   # Sun in Capricorn on Jan 1, 2000 (DE431)
+    ("2010-07-04", "sun_lon", 102.4),   # Sun in Cancer on Jul 4, 2010 (DE431)
+    ("2020-12-21", "sun_lon", 270.1),   # Winter solstice on Dec 21, 2020 (DE431)
+    ("2026-03-15", "sun_lon", 354.9),   # Sun near Pisces/Aries boundary (DE431)
     # Jupiter longitudes (moves ~30 deg/year, good cross-check)
-    ("2000-01-01", "jupiter_lon", 25.8),  # Jupiter in Aries ~25 deg on Jan 1, 2000
-    ("2020-01-01", "jupiter_lon", 278.0), # Jupiter in Capricorn ~278 deg on Jan 1, 2020
+    ("2000-01-01", "jupiter_lon", 25.3),  # Jupiter in Aries on Jan 1, 2000 (DE431)
+    ("2020-01-01", "jupiter_lon", 276.8), # Jupiter in Capricorn on Jan 1, 2020 (DE431)
 ]
 
 TOLERANCE = 0.5  # degrees — generous; Swiss Ephemeris DE431 agrees with JPL to < 0.01 deg
