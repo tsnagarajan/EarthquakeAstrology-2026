@@ -40,7 +40,6 @@ from pipeline.features.engineering import (
 class TestGridCells:
     """FEAT-01: 5-degree grid cell helpers."""
 
-    @pytest.mark.xfail(reason="not implemented — Wave 1")
     def test_compute_grid_coords_basic(self):
         """compute_grid_coords returns (floor(lat/5)*5, floor(lon/5)*5) as ints."""
         # lat=37.5, lon=-122.4 → (35, -125)
@@ -49,7 +48,24 @@ class TestGridCells:
         assert isinstance(result[0], int)
         assert isinstance(result[1], int)
 
-    @pytest.mark.xfail(reason="not implemented — Wave 1")
+    def test_compute_grid_coords_negative_lat(self):
+        """compute_grid_coords handles negative latitudes correctly."""
+        # lat=-3.0, lon=100.5 → (-5, 100)
+        result = compute_grid_coords(-3.0, 100.5)
+        assert result == (-5, 100)
+        assert isinstance(result[0], int)
+        assert isinstance(result[1], int)
+
+    def test_compute_grid_coords_zero(self):
+        """compute_grid_coords handles zero coordinates."""
+        result = compute_grid_coords(0.0, 0.0)
+        assert result == (0, 0)
+
+    def test_compute_grid_coords_japan(self):
+        """compute_grid_coords handles Japan region coords."""
+        result = compute_grid_coords(35.7, 139.2)
+        assert result == (35, 135)
+
     def test_build_active_cells_returns_set_of_tuples(self):
         """build_active_cells returns a set of (int, int) tuples."""
         usgs_df = pd.DataFrame(
@@ -63,7 +79,6 @@ class TestGridCells:
             assert isinstance(cell[0], int)
             assert isinstance(cell[1], int)
 
-    @pytest.mark.xfail(reason="not implemented — Wave 1")
     def test_build_active_cells_known_values(self):
         """build_active_cells produces correct cells for known lat/lon pairs."""
         usgs_df = pd.DataFrame(
