@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-16T19:00:29.050Z"
+last_activity: 2026-03-14 — Roadmap created
+progress:
+  total_phases: 4
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 8
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
 stopped_at: Completed 02-04-PLAN.md
 last_updated: "2026-03-15T22:14:43.986Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
-  total_phases: 4
+  [██████████] 100%
   completed_phases: 1
   total_plans: 8
   completed_plans: 7
@@ -58,6 +74,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-feature-engineering P02 | 4 | 2 tasks | 2 files |
 | Phase 02-feature-engineering P03 | 25 | 2 tasks | 2 files |
 | Phase 02-feature-engineering P04 | 5 | 2 tasks | 2 files |
+| Phase 02-feature-engineering P05 | 90 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -87,6 +104,9 @@ Recent decisions affecting current work:
 - [Phase 02-feature-engineering]: build_matrix_chunk normalizes ephe_row.name to datetime.date before eq_index reindex to handle str/Timestamp index inputs
 - [Phase 02-feature-engineering]: active_cells_list helper added to convert active-cells set to deterministic sorted list for Plan 05 chunked iteration
 - [Phase 02-feature-engineering]: downsample_negatives clamps with min(ratio*n_pos, n_neg) to handle small negative pools gracefully
+- [Phase 02-feature-engineering]: Per-year downsampling always used for pre-2000 matrix build — avoids 32.9M-row intermediate requiring 210GB RAM
+- [Phase 02-feature-engineering]: build_matrix_year() vectorized broadcaster added for O(days*cells) construction without Python row loop overhead
+- [Phase 02-feature-engineering]: test parquet corrupted in committed artifact — ParquetWriter.close() not finalized; needs re-run with raw data on original machine
 
 ### Pending Todos
 
@@ -100,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T22:14:43.982Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-16T19:00:29.038Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
