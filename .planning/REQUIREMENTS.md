@@ -25,15 +25,15 @@
 
 - [x] **MODEL-01**: Model trains on 1900–2000 earthquake + astrological feature data
 - [x] **MODEL-02**: Model is evaluated on 2000–2026 held-out test data using F1 score and Matthews Correlation Coefficient (MCC) as primary metrics (not accuracy)
-- [ ] **MODEL-03**: Model predicts both date AND geographic region (country + lat/long grid cell) for high-risk earthquake events
+- [x] **MODEL-03**: Model predicts both date AND geographic region (country + lat/long grid cell) for high-risk earthquake events
 - [x] **MODEL-04**: At least two classifier types are compared (e.g., Lasso Logistic Regression, XGBoost) with class imbalance handling (class_weight='balanced' or SMOTE)
-- [ ] **MODEL-05**: Trained model is saved to disk (joblib/pickle) for reproducible prediction runs
+- [x] **MODEL-05**: Trained model is saved to disk (joblib/pickle) for reproducible prediction runs
 
 ### Prediction Export
 
-- [ ] **PRED-01**: System generates predictions for March–December 2026 and exports as `predictions.json` in the Next.js `public/data/` directory
-- [ ] **PRED-02**: Predictions JSON schema includes: date, country, lat, lon, risk_score (0–1), top_planetary_aspects (array of strings)
-- [ ] **PRED-03**: Only predictions above a defined risk threshold are included in the export (avoids 365 × N regions = excessive file size)
+- [x] **PRED-01**: System generates predictions for March–December 2026 and exports as `predictions.json` in the Next.js `public/data/` directory
+- [x] **PRED-02**: Predictions JSON schema includes: date, country, lat, lon, risk_score (0–1), top_planetary_aspects (array of strings)
+- [x] **PRED-03**: Only predictions above a defined risk threshold are included in the export (avoids 365 × N regions = excessive file size)
 
 ### Web UI
 
@@ -91,12 +91,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEAT-05 | Phase 2 | Complete |
 | MODEL-01 | Phase 3 | Complete |
 | MODEL-02 | Phase 3 | Complete |
-| MODEL-03 | Phase 3 | Pending |
+| MODEL-03 | Phase 3 | Complete |
 | MODEL-04 | Phase 3 | Complete |
-| MODEL-05 | Phase 3 | Pending |
-| PRED-01 | Phase 3 | Pending |
-| PRED-02 | Phase 3 | Pending |
-| PRED-03 | Phase 3 | Pending |
+| MODEL-05 | Phase 3 | Complete |
+| PRED-01 | Phase 3 | Complete |
+| PRED-02 | Phase 3 | Complete |
+| PRED-03 | Phase 3 | Complete |
 | WEB-01 | Phase 4 | Pending |
 | WEB-02 | Phase 4 | Pending |
 | WEB-03 | Phase 4 | Pending |

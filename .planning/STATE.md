@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-16T23:08:04.826Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-16T23:16:24.321Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 100
 ---
 
@@ -76,6 +76,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 02-feature-engineering P04 | 5 | 2 tasks | 2 files |
 | Phase 02-feature-engineering P05 | 90 | 2 tasks | 6 files |
 | Phase 03-model-training-and-prediction-export P01 | 13 | 3 tasks | 6 files |
+| Phase 03-model-training-and-prediction-export P02 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,8 @@ Recent decisions affecting current work:
 - [Phase 03-model-training-and-prediction-export]: chunked row-group inference for holdout prediction: 5.6M rows exceed 16GB RAM; row-group batches accumulate only float32 probabilities
 - [Phase 03-model-training-and-prediction-export]: pyarrow filter pushdown for 2000-2010 training slice: avoids loading full 8.8M-row test parquet (28GB) into memory
 - [Phase 03-model-training-and-prediction-export]: XGBClassifier wins model selection by MCC (0.001363 vs LogReg 0.001158); threshold=0.1499 from PR curve on 2010-2026 holdout
+- [Phase 03-model-training-and-prediction-export]: 2026 features loaded from test parquet row group 26 instead of re-running ephemeris pipeline: raw ephemeris.csv not present; parquet already has correctly encoded 813-col features for all 2026 dates
+- [Phase 03-model-training-and-prediction-export]: joblib compress=3 for model serialization: 144 KB output balances size and load speed for eq_classifier.pkl
 
 ### Pending Todos
 
@@ -124,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T23:08:04.825Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-16T23:16:24.320Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None
