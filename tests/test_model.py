@@ -34,7 +34,6 @@ class TestTemporalSplit:
         """All holdout rows have date >= 2010-01-01."""
         assert False
 
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_eval_split_date_is_2010(self):
         """eval_report.json records eval_split_date as 2010-01-01."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
@@ -50,7 +49,6 @@ class TestFeatureSelection:
 
 # --- MODEL-02: Evaluated with F1 and MCC ---
 class TestEvalReport:
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_report_schema(self):
         """eval_report.json has all required keys."""
         assert EVAL_REPORT_PATH.exists()
@@ -58,20 +56,17 @@ class TestEvalReport:
         required = {"model_used", "f1_score", "mcc", "confusion_matrix", "threshold", "eval_split_date", "both_models"}
         assert required.issubset(report.keys())
 
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_confusion_matrix_keys(self):
         """confusion_matrix has tp, fp, fn, tn."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
         cm = report["confusion_matrix"]
         assert {"tp", "fp", "fn", "tn"} == set(cm.keys())
 
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_threshold_in_valid_range(self):
         """Threshold is between 0 and 1."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
         assert 0 < report["threshold"] < 1
 
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_metrics_non_negative(self):
         """F1 and MCC are non-negative (model is better than random)."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
@@ -98,7 +93,6 @@ class TestPredictionSchema:
 
 # --- MODEL-04: Two classifiers compared ---
 class TestBothModels:
-    @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
     def test_both_logged(self):
         """both_models array in eval_report has entries for LogisticRegression and XGBClassifier."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
