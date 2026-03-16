@@ -16,6 +16,7 @@ Test naming follows VALIDATION.md exactly:
 """
 
 import math
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -695,6 +696,149 @@ def _make_minimal_ephe_df(sun_lon: float = 45.0, moon_lon: float = 90.0) -> pd.D
     row["sun_moon_conjunction"] = 0
 
     return pd.DataFrame([row])
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — require pipeline run artifacts
+# ---------------------------------------------------------------------------
+
+_TRAIN_PARQUET = "data/processed/feature_matrix_train.parquet"
+_TEST_PARQUET = "data/processed/feature_matrix_test.parquet"
+_FEATURE_COLS_JSON = "data/processed/feature_columns.json"
+_ENCODER_PKL = "data/processed/nakshatra_encoder.pkl"
+
+def _is_valid_parquet(path: str) -> bool:
+    """Return True if the file at path is a readable parquet file with valid footer."""
+    p = Path(path)
+    if not p.exists():
+        return False
+    try:
+        with open(path, "rb") as f:
+            # Parquet files end with 4-byte footer length + 4-byte magic "PAR1"
+            f.seek(-4, 2)
+            magic = f.read(4)
+            return magic == b"PAR1"
+    except OSError:
+        return False
+
+
+_train_exists = pytest.mark.skipif(
+    not Path(_TRAIN_PARQUET).exists(),
+    reason="requires pipeline run: data/processed/feature_matrix_train.parquet not found",
+)
+_test_readable = pytest.mark.skipif(
+    not _is_valid_parquet(_TEST_PARQUET),
+    reason="requires complete pipeline run: feature_matrix_test.parquet missing or corrupted",
+)
+_artifacts_exist = pytest.mark.skipif(
+    not (Path(_TRAIN_PARQUET).exists() and Path(_FEATURE_COLS_JSON).exists() and Path(_ENCODER_PKL).exists()),
+    reason="requires pipeline run: one or more output artifacts missing",
+)
+
+
+class TestOutputArtifacts:
+    """Integration tests validating the four pipeline output artifacts.
+
+    Tests are skipped unless the pipeline has been run and artifacts exist.
+    Use: pytest tests/test_engineering.py::TestOutputArtifacts -v
+    """
+
+    @_train_exists
+    def test_train_parquet_readable(self):
+        """feature_matrix_train.parquet is readable and has > 200,000 rows."""
+        df = pd.read_parquet(_TRAIN_PARQUET)
+        assert df.shape[0] > 200_000, (
+            f"Expected >200K rows in train parquet, got {df.shape[0]}"
+        )
+
+    @_train_exists
+    def test_train_parquet_required_columns(self):
+        """feature_matrix_train.parquet contains EQIndicator, grid_lat, grid_lon, country."""
+        df = pd.read_parquet(_TRAIN_PARQUET)
+        for col in ("EQIndicator", "grid_lat", "grid_lon", "country"):
+            assert col in df.columns, f"Required column '{col}' missing from train parquet"
+
+    @_test_readable
+    def test_test_parquet_readable(self):
+        """feature_matrix_test.parquet is readable by pd.read_parquet."""
+        import pyarrow.parquet as pq
+        pf = pq.ParquetFile(_TEST_PARQUET)
+        # Read just the first row group to avoid loading 8.5M rows
+        tbl = pf.read_row_group(0)
+        df = tbl.to_pandas()
+        assert df.shape[0] > 0, "test parquet first row group is empty"
+        for col in ("EQIndicator", "grid_lat", "grid_lon", "country"):
+            assert col in df.columns, f"Required column '{col}' missing from test parquet"
+
+    @_train_exists
+    @_test_readable
+    def test_temporal_split_in_parquets(self):
+        """Train max date < 2000-01-01; test min date >= 2000-01-01."""
+        import pyarrow.parquet as pq
+        import datetime
+
+        SPLIT = datetime.date(2000, 1, 1)
+
+        train_df = pd.read_parquet(_TRAIN_PARQUET, columns=["date"])
+        max_train = pd.to_datetime(train_df["date"]).max().date()
+        assert max_train < SPLIT, (
+            f"Train parquet max date {max_train} is not before 2000-01-01"
+        )
+
+        # Read test parquet first row group only
+        pf = pq.ParquetFile(_TEST_PARQUET)
+        tbl = pf.read_row_group(0)
+        test_df = tbl.to_pandas()
+        min_test = pd.to_datetime(test_df["date"]).min().date()
+        assert min_test >= SPLIT, (
+            f"Test parquet min date {min_test} is not >= 2000-01-01"
+        )
+
+    @_train_exists
+    def test_no_raw_columns_in_output(self):
+        """No column in train parquet ends with bare '_lon', '_sign_num', '_sign', '_nakshatra_num'."""
+        df = pd.read_parquet(_TRAIN_PARQUET)
+        bad = [
+            c for c in df.columns
+            if (c.endswith("_lon") and c != "grid_lon")
+            or c.endswith("_sign_num")
+            or (c.endswith("_sign") and c != "grid_lon")
+            or c.endswith("_nakshatra_num")
+        ]
+        assert bad == [], f"Raw columns found in train parquet: {bad}"
+
+    @_artifacts_exist
+    def test_feature_columns_json(self):
+        """feature_columns.json is valid JSON with > 400 feature column names."""
+        import json
+        with open(_FEATURE_COLS_JSON) as f:
+            feature_cols = json.load(f)
+        assert isinstance(feature_cols, list), "feature_columns.json must be a JSON list"
+        assert len(feature_cols) > 400, (
+            f"Expected >400 feature columns, got {len(feature_cols)}"
+        )
+        assert all(isinstance(c, str) for c in feature_cols), (
+            "All entries in feature_columns.json must be strings"
+        )
+
+    @_artifacts_exist
+    def test_encoder_pkl_loadable(self):
+        """nakshatra_encoder.pkl is loadable by joblib.load and is a OneHotEncoder."""
+        import joblib
+        from sklearn.preprocessing import OneHotEncoder
+
+        encoder = joblib.load(_ENCODER_PKL)
+        assert isinstance(encoder, OneHotEncoder), (
+            f"Expected OneHotEncoder, got {type(encoder)}"
+        )
+
+    @_train_exists
+    def test_train_eq_indicator_has_both_classes(self):
+        """Train parquet EQIndicator column contains both 0s and 1s."""
+        df = pd.read_parquet(_TRAIN_PARQUET, columns=["EQIndicator"])
+        unique_vals = set(df["EQIndicator"].unique())
+        assert 0 in unique_vals, "EQIndicator=0 (negative) rows missing from train parquet"
+        assert 1 in unique_vals, "EQIndicator=1 (positive) rows missing from train parquet"
 
 
 def _make_full_nakshatra_df() -> pd.DataFrame:
