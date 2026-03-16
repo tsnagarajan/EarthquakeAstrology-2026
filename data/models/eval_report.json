@@ -1,0 +1,25 @@
+{
+  "model_used": "XGBClassifier",
+  "f1_score": 0.002774,
+  "mcc": 0.001363,
+  "threshold": 0.149939,
+  "eval_split_date": "2010-01-01",
+  "confusion_matrix": {
+    "tp": 219,
+    "fp": 151149,
+    "fn": 6313,
+    "tn": 5436628
+  },
+  "both_models": [
+    {
+      "model": "LogisticRegression",
+      "f1": 0.002797,
+      "mcc": 0.001158
+    },
+    {
+      "model": "XGBClassifier",
+      "f1": 0.002774,
+      "mcc": 0.001363
+    }
+  ]
+}
