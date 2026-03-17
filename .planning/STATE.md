@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-17T20:37:14.892Z"
+stopped_at: "Completed 04-02-PLAN.md (paused at Task 3 checkpoint:human-verify)"
+last_updated: "2026-03-17T20:41:25.649Z"
 last_activity: 2026-03-14 — Roadmap created
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
   percent: 100
 ---
 
@@ -78,6 +78,7 @@ Progress: [███░░░░░░░] 33%
 | Phase 03-model-training-and-prediction-export P01 | 13 | 3 tasks | 6 files |
 | Phase 03-model-training-and-prediction-export P02 | 4 | 2 tasks | 6 files |
 | Phase 04-web-app-and-deployment P01 | 4 | 2 tasks | 8 files |
+| Phase 04-web-app-and-deployment P02 | 6 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase 03-model-training-and-prediction-export]: joblib compress=3 for model serialization: 144 KB output balances size and load speed for eq_classifier.pkl
 - [Phase 04-web-app-and-deployment]: npm cache had root-owned directories (EACCES); workaround npm_config_cache=/tmp/npm-cache for install
 - [Phase 04-web-app-and-deployment]: Tailwind CSS 4 globals.css uses CSS-first @import tailwindcss directive — no tailwind.config.js needed
+- [Phase 04-web-app-and-deployment]: MonthGrid is pure presentational (no use client) — all state and callbacks injected from CalendarInteractive
+- [Phase 04-web-app-and-deployment]: Server Component page.tsx loads predictions via loadPredictions()/groupPredictionsByDate() and passes as plain Record to CalendarInteractive client component
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T20:37:14.890Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-17T20:41:25.648Z
+Stopped at: Completed 04-02-PLAN.md (paused at Task 3 checkpoint:human-verify)
 Resume file: None

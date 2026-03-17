@@ -37,8 +37,8 @@
 
 ### Web UI
 
-- [ ] **WEB-01**: Calendar view displays 2026 months (March–December) with dates color-coded by earthquake risk level
-- [ ] **WEB-02**: Clicking a high-risk date shows a detail panel: risk score, predicted region(s), and top contributing planetary aspects
+- [x] **WEB-01**: Calendar view displays 2026 months (March–December) with dates color-coded by earthquake risk level
+- [x] **WEB-02**: Clicking a high-risk date shows a detail panel: risk score, predicted region(s), and top contributing planetary aspects
 - [ ] **WEB-03**: A methodology page explains the astrological ML approach and displays model evaluation metrics (F1, MCC, confusion matrix) from the 2000–2026 test period
 - [x] **WEB-04**: A prominent scientific disclaimer is displayed stating this is an experimental astrological model and earthquakes cannot be reliably predicted
 - [x] **WEB-05**: Next.js app reads predictions.json at build time via Server Component (no client-side fetch)
@@ -97,8 +97,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRED-01 | Phase 3 | Complete |
 | PRED-02 | Phase 3 | Complete |
 | PRED-03 | Phase 3 | Complete |
-| WEB-01 | Phase 4 | Pending |
-| WEB-02 | Phase 4 | Pending |
+| WEB-01 | Phase 4 | Complete |
+| WEB-02 | Phase 4 | Complete |
 | WEB-03 | Phase 4 | Pending |
 | WEB-04 | Phase 4 | Complete |
 | WEB-05 | Phase 4 | Complete |
