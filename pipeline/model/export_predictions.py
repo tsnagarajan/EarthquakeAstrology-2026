@@ -20,20 +20,9 @@ import logging
 import os
 from pathlib import Path
 
-import numpy as np
+import joblib
 import pandas as pd
 import pyarrow.parquet as pq
-import joblib
-
-from pipeline.features.engineering import (
-    encode_ephemeris,
-    apply_nakshatra_encoding,
-    load_encoder,
-    build_active_cells,
-    active_cells_list,
-    build_country_map,
-    build_matrix_year,
-)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -48,6 +37,7 @@ EPHEMERIS_CSV = "data/raw/ephemeris.csv"
 USGS_CSV = "data/raw/usgs_earthquakes.csv"
 TEST_PARQUET = "data/processed/feature_matrix_test.parquet"
 PREDICTIONS_PATH = "web/public/data/predictions.json"
+PUBLIC_EVAL_REPORT_PATH = "web/public/data/eval_report.json"
 
 PRED_START = datetime.date(2026, 3, 1)
 PRED_END = datetime.date(2026, 12, 31)
@@ -141,6 +131,10 @@ def main():
         report = json.load(f)
     threshold = report["threshold"]
     logger.info("Threshold from eval_report.json: %.6f", threshold)
+    Path("web/public/data").mkdir(parents=True, exist_ok=True)
+    with open(PUBLIC_EVAL_REPORT_PATH, "w") as f:
+        json.dump(report, f, indent=2)
+    logger.info("Public eval report written to %s", PUBLIC_EVAL_REPORT_PATH)
 
     with open(FEATURE_IMPORTANCE_PATH) as f:
         importance_map: dict = json.load(f)
@@ -166,14 +160,28 @@ def main():
     pred_rows["risk_score"] = risk_scores
     logger.info("Inference complete")
 
-    # Step 5: Select top N days per calendar month by per-date max risk score.
+    # Step 5: Apply the evaluation threshold before selecting display records.
+    above_threshold = pred_rows[pred_rows["risk_score"] >= threshold].copy()
+    logger.info(
+        "Rows at or above threshold %.6f: %d",
+        threshold,
+        len(above_threshold),
+    )
+    if above_threshold.empty:
+        Path("web/public/data").mkdir(parents=True, exist_ok=True)
+        with open(PREDICTIONS_PATH, "w") as f:
+            json.dump([], f, indent=2)
+        logger.warning("No prediction rows met threshold; wrote empty predictions.json")
+        return
+
+    # Step 6: Select top N days per calendar month by per-date max risk score.
     # This ensures year-round coverage rather than letting globally high months
     # (e.g. March, November) dominate the output.
     TOP_DAYS_PER_MONTH = 3
-    date_str_series = pred_rows["date"].apply(
+    date_str_series = above_threshold["date"].apply(
         lambda d: d.isoformat() if hasattr(d, "isoformat") else str(d)
     )
-    date_max_scores = pred_rows.groupby(date_str_series)["risk_score"].max().reset_index()
+    date_max_scores = above_threshold.groupby(date_str_series)["risk_score"].max().reset_index()
     date_max_scores.columns = ["date", "max_risk_score"]
     date_max_scores["month"] = date_max_scores["date"].str[:7]
     high_risk_dates = set(
@@ -182,7 +190,7 @@ def main():
         .groupby("month")
         .head(TOP_DAYS_PER_MONTH)["date"]
     )
-    above = pred_rows[date_str_series.isin(high_risk_dates)].copy()
+    above = above_threshold[date_str_series.isin(high_risk_dates)].copy()
     logger.info(
         "High-risk dates (top %d per month): %d dates across %d months, %d rows",
         TOP_DAYS_PER_MONTH, len(high_risk_dates),
@@ -190,7 +198,7 @@ def main():
         len(above),
     )
 
-    # Step 6: Keep only top 10 rows per date (UI shows top 3 locations; 10 gives buffer)
+    # Step 7: Keep only top 10 rows per date (UI shows top 3 locations; 10 gives buffer)
     above = (
         above.sort_values("risk_score", ascending=False)
         .groupby(date_str_series[above.index], sort=False)
@@ -198,7 +206,7 @@ def main():
     )
     logger.info("After top-10 per date cap: %d rows", len(above))
 
-    # Step 7: Assemble JSON records
+    # Step 8: Assemble JSON records
     records = []
     for _, row in above.iterrows():
         d = row["date"]
@@ -211,7 +219,7 @@ def main():
             "top_planetary_aspects": top_aspects(row.to_dict(), aspect_cols, importance_map),
         })
 
-    # Step 8: Write predictions.json
+    # Step 9: Write predictions.json
     Path("web/public/data").mkdir(parents=True, exist_ok=True)
     with open(PREDICTIONS_PATH, "w") as f:
         json.dump(records, f, indent=2)

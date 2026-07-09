@@ -11,6 +11,7 @@ import pytest
 EVAL_REPORT_PATH = Path("data/models/eval_report.json")
 CLASSIFIER_PATH = Path("data/models/eq_classifier.pkl")
 PREDICTIONS_PATH = Path("web/public/data/predictions.json")
+PUBLIC_EVAL_REPORT_PATH = Path("web/public/data/eval_report.json")
 TRAIN_PARQUET = Path("data/processed/feature_matrix_train.parquet")
 TEST_PARQUET = Path("data/processed/feature_matrix_test.parquet")
 FEATURE_COLS_PATH = Path("data/processed/feature_columns.json")
@@ -281,6 +282,12 @@ class TestPredictionExport:
         records = json.loads(PREDICTIONS_PATH.read_text())
         for r in records:
             assert r["risk_score"] >= threshold
+
+    def test_public_eval_report_matches_model_report(self):
+        """Web-facing eval_report.json mirrors the model evaluation report."""
+        model_report = json.loads(EVAL_REPORT_PATH.read_text())
+        public_report = json.loads(PUBLIC_EVAL_REPORT_PATH.read_text())
+        assert public_report == model_report
 
 
 # --- Artifact smoke tests (Wave 0 validation) ---
