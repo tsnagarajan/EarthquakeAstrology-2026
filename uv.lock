@@ -218,6 +218,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "tqdm" },
     { name = "xgboost" },
 ]
@@ -255,6 +256,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
+    { name = "scipy", specifier = ">=1.17.1" },
     { name = "seaborn", marker = "extra == 'dev'", specifier = ">=0.13" },
     { name = "tqdm", specifier = ">=4.0" },
     { name = "xgboost", specifier = ">=2.0" },
