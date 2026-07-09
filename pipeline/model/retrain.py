@@ -18,11 +18,10 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from xgboost import XGBClassifier
 import joblib
 
 from pipeline.features.engineering import downsample_negatives
+from pipeline.model.classifiers import build_classifier
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -44,6 +43,11 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
 logger = logging.getLogger("pipeline.model.retrain")
+
+
+def build_winner_model(model_name: str):
+    """Return the configured winner model for final serialization."""
+    return build_classifier(model_name)
 
 
 # ---------------------------------------------------------------------------
@@ -107,19 +111,7 @@ def main():
     logger.info("Training arrays prepared: X=%s, y=%s", X.shape, y.shape)
 
     # Instantiate the winner model with the same hyperparameters used in train_eval.py
-    if model_name == "LogisticRegression":
-        model = LogisticRegression(
-            C=1, penalty="l1", solver="liblinear", max_iter=1000, random_state=42
-        )
-    elif model_name == "XGBClassifier":
-        model = XGBClassifier(
-            n_estimators=100,
-            max_depth=6,
-            random_state=42,
-            eval_metric="logloss",
-        )
-    else:
-        raise ValueError(f"Unknown model_used in eval_report.json: {model_name!r}")
+    model = build_winner_model(model_name)
 
     logger.info("Fitting %s on full 1900-2026 dataset ...", model_name)
     model.fit(X, y)

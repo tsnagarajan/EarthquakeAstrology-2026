@@ -178,6 +178,14 @@ class TestCorrectedModelSelection:
         assert XGB_SCALE_POS_WEIGHT == 10.0
         assert build_xgb_classifier().get_params()["scale_pos_weight"] == 10.0
 
+    def test_retrain_xgb_winner_uses_phase2_class_weight(self):
+        """Final retraining uses the same XGBoost class weighting as model selection."""
+        from pipeline.model import retrain
+
+        model = retrain.build_winner_model("XGBClassifier")
+
+        assert model.get_params()["scale_pos_weight"] == 10.0
+
 
 class TestFeatureSelection:
     @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
