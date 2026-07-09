@@ -4,6 +4,9 @@ import json
 import datetime
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 # Paths
 EVAL_REPORT_PATH = Path("data/models/eval_report.json")
 CLASSIFIER_PATH = Path("data/models/eq_classifier.pkl")
@@ -22,22 +25,158 @@ def _is_valid_parquet(path: Path) -> bool:
         return f.read(4) == b"PAR1"
 
 
-# --- MODEL-01: Train on pre-2010 data ---
+# --- MODEL-01: Train on pre-2000 data ---
 class TestTemporalSplit:
     @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
-    def test_train_dates_before_2010(self):
-        """All training rows have date < 2010-01-01."""
+    def test_train_dates_before_2000(self):
+        """All training rows have date < 2000-01-01."""
         assert False
 
     @pytest.mark.xfail(reason="stub — train_eval.py not yet implemented")
-    def test_holdout_dates_from_2010(self):
-        """All holdout rows have date >= 2010-01-01."""
+    def test_holdout_dates_from_2000(self):
+        """All holdout rows have date >= 2000-01-01."""
         assert False
 
-    def test_eval_split_date_is_2010(self):
-        """eval_report.json records eval_split_date as 2010-01-01."""
+    def test_eval_split_date_is_2000(self):
+        """eval_report.json records eval_split_date as 2000-01-01."""
         report = json.loads(EVAL_REPORT_PATH.read_text())
-        assert report["eval_split_date"] == "2010-01-01"
+        assert report["eval_split_date"] == "2000-01-01"
+
+
+class TestCorrectedModelSelection:
+    def test_eval_split_date_constant_is_2000(self):
+        """Model evaluation split date is fixed at 2000-01-01."""
+        from pipeline.model import train_eval
+
+        assert train_eval.EVAL_SPLIT_DATE == datetime.date(2000, 1, 1)
+
+    def test_eval_report_uses_eval_split_date_constant(self, tmp_path, monkeypatch):
+        """select_winner_and_write_report writes the configured eval split date."""
+        from pipeline.model import train_eval
+
+        report_path = tmp_path / "eval_report.json"
+        monkeypatch.setattr(train_eval, "EVAL_REPORT_PATH", report_path)
+        monkeypatch.setattr(train_eval, "EVAL_SPLIT_DATE", datetime.date(2000, 1, 1))
+        results = [
+            {
+                "model": "LogisticRegression",
+                "f1": 0.25,
+                "mcc": 0.4,
+                "threshold": 0.3,
+                "confusion_matrix": {"tp": 1, "fp": 2, "fn": 3, "tn": 4},
+            },
+            {
+                "model": "XGBClassifier",
+                "f1": 0.2,
+                "mcc": 0.3,
+                "threshold": 0.4,
+                "confusion_matrix": {"tp": 4, "fp": 3, "fn": 2, "tn": 1},
+            },
+        ]
+
+        train_eval.select_winner_and_write_report(results, model_objects=[])
+
+        report = json.loads(report_path.read_text())
+        assert report["eval_split_date"] == train_eval.EVAL_SPLIT_DATE.isoformat()
+
+    def test_load_training_set_reads_train_parquet_only(self, monkeypatch):
+        """load_training_set uses only TRAIN_PARQUET and returns float32 features."""
+        from pipeline.model import train_eval
+
+        feature_cols = ["feature_a", "feature_b"]
+        train_df = pd.DataFrame(
+            {
+                "feature_a": [1, 2],
+                "feature_b": [3.5, 4.5],
+                "date": [datetime.date(1999, 1, 1), datetime.date(1999, 1, 2)],
+                "EQIndicator": [1, 0],
+                "grid_lat": [10.0, 20.0],
+                "grid_lon": [30.0, 40.0],
+                "country": ["AA", "BB"],
+            }
+        )
+        read_paths = []
+
+        def fake_read_parquet(path, columns=None, **kwargs):
+            read_paths.append(path)
+            assert path == train_eval.TRAIN_PARQUET
+            assert columns == feature_cols + [
+                "date",
+                "EQIndicator",
+                "grid_lat",
+                "grid_lon",
+                "country",
+            ]
+            assert not kwargs
+            return train_df
+
+        monkeypatch.setattr(train_eval, "EXPECTED_FEATURE_COUNT", 2)
+        monkeypatch.setattr(train_eval.pd, "read_parquet", fake_read_parquet)
+
+        X, y = train_eval.load_training_set(feature_cols)
+
+        assert read_paths == [train_eval.TRAIN_PARQUET]
+        assert train_eval.TEST_PARQUET not in read_paths
+        assert X.dtype == np.float32
+        np.testing.assert_array_equal(y, np.array([1, 0]))
+
+    def test_predict_holdout_chunked_filters_from_eval_split_date(self, monkeypatch):
+        """predict_holdout_chunked keeps only rows on/after EVAL_SPLIT_DATE."""
+        from pipeline.model import train_eval
+
+        feature_cols = ["feature_a", "feature_b"]
+        row_group = pd.DataFrame(
+            {
+                "feature_a": [0.1, 0.2, 0.3],
+                "feature_b": [1.1, 1.2, 1.3],
+                "date": [
+                    datetime.date(1999, 12, 31),
+                    datetime.date(2000, 1, 1),
+                    datetime.date(2000, 1, 2),
+                ],
+                "EQIndicator": [0, 1, 0],
+            }
+        )
+        constructed_paths = []
+
+        class FakeRowGroup:
+            def to_pandas(self):
+                return row_group.copy()
+
+        class FakeMetadata:
+            num_row_groups = 1
+
+        class FakeParquetFile:
+            metadata = FakeMetadata()
+
+            def __init__(self, path):
+                constructed_paths.append(path)
+
+            def read_row_group(self, rg_idx, columns=None):
+                assert rg_idx == 0
+                assert columns == feature_cols + ["date", "EQIndicator"]
+                return FakeRowGroup()
+
+        class FakeModel:
+            def predict_proba(self, X):
+                positive_prob = X[:, 0].astype("float32")
+                return np.column_stack([1 - positive_prob, positive_prob])
+
+        monkeypatch.setattr(train_eval.pq, "ParquetFile", FakeParquetFile)
+
+        y_true, y_probs = train_eval.predict_holdout_chunked([FakeModel()], feature_cols)
+
+        assert constructed_paths == [train_eval.TEST_PARQUET]
+        np.testing.assert_array_equal(y_true, np.array([1, 0]))
+        assert len(y_probs) == 1
+        np.testing.assert_allclose(y_probs[0], np.array([0.2, 0.3], dtype=np.float32))
+
+    def test_xgb_classifier_uses_positive_class_weight(self):
+        """XGB classifier factory applies the configured positive class weight."""
+        from pipeline.model.classifiers import XGB_SCALE_POS_WEIGHT, build_xgb_classifier
+
+        assert XGB_SCALE_POS_WEIGHT == 10.0
+        assert build_xgb_classifier().get_params()["scale_pos_weight"] == 10.0
 
 
 class TestFeatureSelection:

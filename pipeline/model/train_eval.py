@@ -1,14 +1,14 @@
 """pipeline/model/train_eval.py
 
 Model selection: train Lasso LogisticRegression and XGBClassifier on the
-1900-2010 internal training set, evaluate both on the 2010-2026 holdout
+pre-2000 internal training set, evaluate both on the post-2000 holdout
 using MCC and F1, select the winner by highest MCC, derive threshold from
 the precision-recall curve, and write data/models/eval_report.json.
 
 Memory strategy:
-- Training set (1900-2010, after 10:1 downsampling): ~300k rows × 813 cols ≈ 1GB at float32
+- Training set (pre-2000, after 10:1 downsampling): ~300k rows × 813 cols ≈ 1GB at float32
   → loaded fully into memory
-- Holdout (2010-2026): 5.6M rows × 813 cols ≈ 17GB at float32 → too large for 16GB RAM
+- Holdout (post-2000): 8.8M rows × 813 cols → too large for 16GB RAM
   → predicted in row-group chunks using pyarrow; only probabilities + labels accumulated
 """
 import datetime
@@ -19,27 +19,31 @@ import os
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     confusion_matrix,
     f1_score,
     matthews_corrcoef,
     precision_recall_curve,
 )
-from xgboost import XGBClassifier
 
-from pipeline.features.engineering import downsample_negatives
+from pipeline.model.classifiers import (
+    LOGISTIC_REGRESSION_MODEL,
+    XGB_CLASSIFIER_MODEL,
+    build_logistic_regression,
+    build_xgb_classifier,
+)
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-EVAL_SPLIT_DATE = datetime.date(2010, 1, 1)
+EVAL_SPLIT_DATE = datetime.date(2000, 1, 1)
 PHASE2_SPLIT_DATE = datetime.date(2000, 1, 1)
 TRAIN_PARQUET = "data/processed/feature_matrix_train.parquet"
 TEST_PARQUET = "data/processed/feature_matrix_test.parquet"
 FEATURE_COLS_JSON = "data/processed/feature_columns.json"
 EVAL_REPORT_PATH = "data/models/eval_report.json"
+EXPECTED_FEATURE_COUNT = 813
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -53,54 +57,29 @@ logger = logging.getLogger("pipeline.model.train_eval")
 
 
 # ---------------------------------------------------------------------------
-# Step 1: Load training partitions using filter pushdown
+# Step 1: Load the preprocessed training set
 # ---------------------------------------------------------------------------
 
 def load_training_set(feature_cols: list[str]) -> tuple[np.ndarray, np.ndarray]:
-    """Build X_train, y_train from pre-2000 (already downsampled) and 2000-2010 (downsampled here).
-
-    Uses pyarrow filter pushdown to avoid loading the full 8.8M-row test parquet.
-    Total training set after downsampling: ~300k rows × 813 float32 cols ≈ 1GB.
-    """
+    """Build X_train, y_train from the canonical pre-2000 training parquet."""
     meta_cols = ["date", "EQIndicator", "grid_lat", "grid_lon", "country"]
     needed_cols = feature_cols + meta_cols
 
-    # Pre-2000 from train parquet (already 10:1 downsampled in Phase 2)
     logger.info("Reading train parquet (pre-2000): %s", TRAIN_PARQUET)
-    pre2000 = pd.read_parquet(TRAIN_PARQUET, columns=needed_cols)
-    pre2000[feature_cols] = pre2000[feature_cols].astype("float32")
-    logger.info("Pre-2000 partition: %d rows", len(pre2000))
-
-    # 2000-2010 from test parquet (NOT downsampled — apply downsampling here)
-    logger.info("Reading test parquet 2000-2010 slice via filter pushdown")
-    slice_2000_2010 = pd.read_parquet(
-        TEST_PARQUET,
-        columns=needed_cols,
-        filters=[("date", "<", EVAL_SPLIT_DATE)],
-    )
-    slice_2000_2010[feature_cols] = slice_2000_2010[feature_cols].astype("float32")
+    train_df = pd.read_parquet(TRAIN_PARQUET, columns=needed_cols)
+    train_df[feature_cols] = train_df[feature_cols].astype("float32")
     logger.info(
-        "2000-2010 partition before downsampling: %d rows  "
-        "(positive=%d, negative=%d)",
-        len(slice_2000_2010),
-        (slice_2000_2010["EQIndicator"] == 1).sum(),
-        (slice_2000_2010["EQIndicator"] == 0).sum(),
+        "Training set: %d rows (positive=%d, negative=%d)",
+        len(train_df),
+        int((train_df["EQIndicator"] == 1).sum()),
+        int((train_df["EQIndicator"] == 0).sum()),
     )
 
-    # Downsample the 2000-2010 slice
-    post2000_ds = downsample_negatives(slice_2000_2010, ratio=10, random_state=42)
-    del slice_2000_2010
-    logger.info("2000-2010 after downsampling: %d rows", len(post2000_ds))
-
-    # Combine
-    sel_train_final = pd.concat([pre2000, post2000_ds], ignore_index=True)
-    del pre2000
-    del post2000_ds
-    logger.info("Final training set: %d rows", len(sel_train_final))
-
-    X_train = sel_train_final[feature_cols].to_numpy(dtype="float32")
-    y_train = sel_train_final["EQIndicator"].to_numpy()
-    assert X_train.shape[1] == 813, f"Expected 813 features, got {X_train.shape[1]}"
+    X_train = train_df[feature_cols].to_numpy(dtype="float32")
+    y_train = train_df["EQIndicator"].to_numpy()
+    assert X_train.shape[1] == EXPECTED_FEATURE_COUNT, (
+        f"Expected {EXPECTED_FEATURE_COUNT} features, got {X_train.shape[1]}"
+    )
     logger.info("X_train shape: %s", X_train.shape)
     return X_train, y_train
 
@@ -112,9 +91,9 @@ def load_training_set(feature_cols: list[str]) -> tuple[np.ndarray, np.ndarray]:
 def predict_holdout_chunked(
     models: list, feature_cols: list[str]
 ) -> tuple[np.ndarray, list[np.ndarray]]:
-    """Predict probabilities for the 2010-2026 holdout in row-group chunks.
+    """Predict probabilities for the post-2000 holdout in row-group chunks.
 
-    The holdout parquet is 5.6M rows × 813 float32 cols ≈ 17GB — too large
+    The post-2000 holdout parquet is 8.8M rows × 813 float32 cols — too large
     for 16GB RAM. We iterate over pyarrow row groups, predict in chunks, and
     accumulate only the probabilities (float32) + labels.
 
@@ -139,7 +118,7 @@ def predict_holdout_chunked(
             rg_idx, columns=feature_cols + ["date", "EQIndicator"]
         ).to_pandas()
 
-        # Filter to holdout rows (2010-2026)
+        # Filter to holdout rows (post-2000)
         rg = rg[rg["date"].apply(lambda d: d >= EVAL_SPLIT_DATE)]
         if len(rg) == 0:
             continue
@@ -222,7 +201,7 @@ def select_winner_and_write_report(
         "f1_score": round(winner["f1"], 6),
         "mcc": round(winner["mcc"], 6),
         "threshold": round(winner["threshold"], 6),
-        "eval_split_date": "2010-01-01",
+        "eval_split_date": EVAL_SPLIT_DATE.isoformat(),
         "confusion_matrix": winner["confusion_matrix"],
         "both_models": [
             {"model": r["model"], "f1": round(r["f1"], 6), "mcc": round(r["mcc"], 6)}
@@ -250,24 +229,17 @@ def main():
         feature_cols = json.load(f)
     logger.info("Loaded %d feature columns", len(feature_cols))
 
-    # Build training arrays (filter pushdown + downsampling)
+    # Build training arrays from the canonical pre-2000 parquet.
     X_train, y_train = load_training_set(feature_cols)
 
     # Train both models
     logger.info("Training LogisticRegression ...")
-    logreg = LogisticRegression(
-        C=1, penalty="l1", solver="liblinear", max_iter=1000, random_state=42
-    )
+    logreg = build_logistic_regression()
     logreg.fit(X_train, y_train)
     logger.info("LogisticRegression training complete")
 
     logger.info("Training XGBClassifier ...")
-    xgb = XGBClassifier(
-        n_estimators=100,
-        max_depth=6,
-        random_state=42,
-        eval_metric="logloss",
-    )
+    xgb = build_xgb_classifier()
     xgb.fit(X_train, y_train)
     logger.info("XGBClassifier training complete")
 
@@ -275,7 +247,7 @@ def main():
     del y_train
 
     # Chunked holdout prediction (avoids OOM)
-    model_names = ["LogisticRegression", "XGBClassifier"]
+    model_names = [LOGISTIC_REGRESSION_MODEL, XGB_CLASSIFIER_MODEL]
     models = [logreg, xgb]
     logger.info("Running chunked holdout prediction for both models ...")
     y_true, y_probs = predict_holdout_chunked(models, feature_cols)
