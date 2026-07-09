@@ -4,10 +4,10 @@ Adds a 'region' column (via assign_region_by_latlon on grid_lat/grid_lon) and
 a 'risk_score' column (model predicted probability) to the 2000-2026 test
 set, writing a lightweight output parquet for regional scoring.
 
-feature_matrix_test.parquet has no predicted-probability column — the model
-has never been run against the full 2000-2026 test set (train_eval.py only
-scores the 2010-2026 holdout, and export_predictions.py only scores
-March-Dec 2026). Generating risk_score requires one inference pass over all
+feature_matrix_test.parquet has no predicted-probability column — the serialized
+final model has not been run against the full 2000-2026 test set
+(export_predictions.py only scores March-Dec 2026). Generating risk_score requires
+one inference pass over all
 8.89M rows, so it's folded into this same row-group read rather than reading
 the 818-column, ~30MB-on-disk / multi-GB-decompressed parquet a second time.
 
