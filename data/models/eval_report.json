@@ -1,25 +1,25 @@
 {
   "model_used": "XGBClassifier",
-  "f1_score": 0.002774,
-  "mcc": 0.001363,
-  "threshold": 0.149939,
-  "eval_split_date": "2010-01-01",
+  "f1_score": 0.002627,
+  "mcc": 0.000889,
+  "threshold": 0.5285,
+  "eval_split_date": "2000-01-01",
   "confusion_matrix": {
-    "tp": 219,
-    "fp": 151149,
-    "fn": 6313,
-    "tn": 5436628
+    "tp": 1146,
+    "fp": 860210,
+    "fn": 9829,
+    "tn": 8014477
   },
   "both_models": [
     {
       "model": "LogisticRegression",
-      "f1": 0.002797,
-      "mcc": 0.001158
+      "f1": 0.002469,
+      "mcc": 0.000244
     },
     {
       "model": "XGBClassifier",
-      "f1": 0.002774,
-      "mcc": 0.001363
+      "f1": 0.002627,
+      "mcc": 0.000889
     }
   ]
 }
