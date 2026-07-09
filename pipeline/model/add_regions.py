@@ -23,7 +23,6 @@ import os
 
 import joblib
 import pandas as pd
-import pyarrow as pa
 import pyarrow.parquet as pq
 
 from pipeline.features.regions import assign_region_by_latlon

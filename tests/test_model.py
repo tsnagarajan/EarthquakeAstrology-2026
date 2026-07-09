@@ -1,11 +1,11 @@
 """Tests for pipeline.model — Phase 3 model training and prediction export."""
-import pytest
-import json
 import datetime
+import json
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 # Paths
 EVAL_REPORT_PATH = Path("data/models/eval_report.json")

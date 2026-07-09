@@ -16,9 +16,9 @@ import logging
 import os
 from pathlib import Path
 
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
 
 from pipeline.features.engineering import downsample_negatives
 from pipeline.model.classifiers import build_classifier
