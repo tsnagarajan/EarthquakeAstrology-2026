@@ -43,6 +43,10 @@ class TestAssignRegionByLatLon:
         # Japan
         assert assign_region_by_latlon(35, 140) == "Pacific Ring Asia/Oceania"
 
+    def test_pacific_ring_asia_oceania_dateline_west(self):
+        # Tonga/Fiji/Kermadec-style cells sit just west of the dateline.
+        assert assign_region_by_latlon(-20, -175) == "Pacific Ring Asia/Oceania"
+
     def test_unclassified(self):
         # Antarctica interior — matches no box.
         assert assign_region_by_latlon(-80, 0) == "Unclassified"
@@ -66,11 +70,9 @@ class TestRegionalScoring:
         assert result["n_predictions"] == 2
         assert result["hits"] == 1
         assert result["hit_rate"] == 0.5
-        # Two event-backed 7-day candidate windows over 54 complete 7-day starts:
-        # Jan 4-10, Jan 5-11, Jan 6-12, Jan 7-13, Jan 8-14, Jan 9-15, Jan 10-16
-        # and Feb 14-20, Feb 15-21, Feb 16-22, Feb 17-23, Feb 18-24, Feb 19-25, Feb 20-26.
-        assert result["base_rate"] == 0.2593
-        assert result["lift"] == 1.9286
+        # Base rate uses the same centered +/-2 day opportunity window as hit scoring.
+        assert result["base_rate"] == 0.1569
+        assert result["lift"] == 3.1875
 
     def test_score_region_handles_empty_subset(self):
         result = regional_scoring.score_region(

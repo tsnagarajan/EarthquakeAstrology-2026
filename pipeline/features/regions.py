@@ -20,12 +20,14 @@ Cells matching none of the boxes (mid-ocean ridges, Antarctica, etc.) are
 """
 
 # (region_name, lat_min, lat_max, lon_min, lon_max) — order matters, first match wins.
+# Dateline-crossing regions are represented as separate eastern/western boxes.
 REGION_BOXES = [
     ("Caribbean", 8, 23, -88, -60),
     ("Middle East", 12, 40, 34, 60),
     ("Mediterranean", 30, 46, -6, 37),
     ("South Asia", 5, 38, 60, 92),
     ("Pacific Ring Asia/Oceania", -50, 55, 95, 180),
+    ("Pacific Ring Asia/Oceania", -50, 55, -180, -160),
     ("Americas Pacific", -56, 60, -125, -60),
 ]
 

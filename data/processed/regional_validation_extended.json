@@ -4,71 +4,71 @@
     "n_predictions": 324,
     "hits": 36,
     "hit_rate": 0.1111,
-    "base_rate": 0.058,
-    "lift": 1.9145,
-    "p_value": 0.00016634697707760564
+    "base_rate": 0.1205,
+    "lift": 0.9224,
+    "p_value": 0.721899551407803
   },
   {
     "region": "Mediterranean",
     "n_predictions": 324,
     "hits": 73,
     "hit_rate": 0.2253,
-    "base_rate": 0.1015,
-    "lift": 2.2206,
-    "p_value": 6.377533078695919e-11
+    "base_rate": 0.1962,
+    "lift": 1.1483,
+    "p_value": 0.10711987746521105
   },
   {
     "region": "South Asia",
     "n_predictions": 324,
     "hits": 127,
     "hit_rate": 0.392,
-    "base_rate": 0.1995,
-    "lift": 1.9651,
-    "p_value": 1.3759341378615656e-15
+    "base_rate": 0.366,
+    "lift": 1.0711,
+    "p_value": 0.17991863666144503
   },
   {
     "region": "Middle East",
     "n_predictions": 324,
     "hits": 68,
     "hit_rate": 0.2099,
-    "base_rate": 0.0851,
-    "lift": 2.4655,
-    "p_value": 3.683635112490731e-12
+    "base_rate": 0.1674,
+    "lift": 1.2537,
+    "p_value": 0.026757098306598896
   },
   {
     "region": "Pacific Ring Asia/Oceania",
     "n_predictions": 324,
     "hits": 315,
     "hit_rate": 0.9722,
-    "base_rate": 0.9346,
-    "lift": 1.0403,
-    "p_value": 0.0018980362491863047
+    "base_rate": 0.9708,
+    "lift": 1.0015,
+    "p_value": 0.5259119346885632
   },
   {
     "region": "Mexico",
     "n_predictions": 324,
     "hits": 93,
     "hit_rate": 0.287,
-    "base_rate": 0.1445,
-    "lift": 1.9867,
-    "p_value": 3.021013727429806e-11
+    "base_rate": 0.2808,
+    "lift": 1.0223,
+    "p_value": 0.4216427269883334
   },
   {
     "region": "Peru",
     "n_predictions": 324,
     "hits": 72,
     "hit_rate": 0.2222,
-    "base_rate": 0.1009,
-    "lift": 2.2034,
-    "p_value": 1.266469477532128e-10
+    "base_rate": 0.1995,
+    "lift": 1.1142,
+    "p_value": 0.16913287703305438
   },
   {
     "region": "Chile",
     "n_predictions": 324,
     "hits": 154,
     "hit_rate": 0.4753,
-    "base_rate": 0.2433,
-    "lift": 1.9536,
-    "p_value": 1.2017538084211005e-19
+    "base_rate": 0.4308,
+    "lift": 1.1032,
+    "p_value": 0.05973410705008652
   }
 ]

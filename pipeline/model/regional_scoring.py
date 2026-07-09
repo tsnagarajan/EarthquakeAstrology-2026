@@ -29,7 +29,6 @@ from scipy.stats import binomtest
 REGIONS_PARQUET = "data/processed/feature_matrix_test_with_regions.parquet"
 OUTPUT_PATH = "data/processed/regional_validation_extended.json"
 WINDOW_DAYS = 7
-BASE_RATE_WINDOW_DAYS = 7
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -42,18 +41,14 @@ logging.basicConfig(
 logger = logging.getLogger("pipeline.model.regional_scoring")
 
 
-def _daily_eq_occurred(region_df: pd.DataFrame, start=None, end=None) -> pd.Series:
+def _daily_eq_occurred(region_df: pd.DataFrame) -> pd.Series:
     """Boolean series indexed by every calendar day in the region's date
     range: True if >=1 actual M5.5+ earthquake occurred anywhere in the
     region on that day."""
     dates = pd.to_datetime(region_df["date"])
     eq_dates = set(dates[region_df["EQIndicator"] == 1].dt.date)
 
-    full_range = pd.date_range(
-        dates.min() if start is None else start,
-        dates.max() if end is None else end,
-        freq="D",
-    )
+    full_range = pd.date_range(dates.min(), dates.max(), freq="D")
     occurred = pd.Series(
         [d.date() in eq_dates for d in full_range],
         index=full_range,
@@ -70,22 +65,13 @@ def _window_has_eq(occurred: pd.Series, center_date, window_days: int) -> bool:
     return bool(window.any())
 
 
-def _region_week_base_rate(occurred: pd.Series) -> float:
-    """Return the historical share of candidate region-weeks with an event."""
+def _centered_window_base_rate(occurred: pd.Series, window_days: int) -> float:
+    """Return the share of centered +/- windows with at least one event."""
     if occurred.empty:
         return 0.0
 
-    last_start = occurred.index.max() - pd.Timedelta(days=BASE_RATE_WINDOW_DAYS - 1)
-    candidate_days = occurred.index[occurred.index <= last_start]
-    if len(candidate_days) == 0:
-        return 0.0
-
-    week_delta = pd.Timedelta(days=BASE_RATE_WINDOW_DAYS - 1)
-    base_hits = sum(
-        bool(occurred[(occurred.index >= d) & (occurred.index <= d + week_delta)].any())
-        for d in candidate_days
-    )
-    return base_hits / len(candidate_days)
+    base_hits = sum(_window_has_eq(occurred, d, window_days) for d in occurred.index)
+    return base_hits / len(occurred)
 
 
 def score_region(region_df: pd.DataFrame, region_name: str, window_days: int = WINDOW_DAYS) -> dict:
@@ -95,8 +81,7 @@ def score_region(region_df: pd.DataFrame, region_name: str, window_days: int = W
         region_df: rows already filtered to a single region/country, with
             columns 'date', 'grid_lat', 'grid_lon', 'EQIndicator', 'risk_score'.
         region_name: label used in the returned dict and log messages.
-        window_days: +/- day window for hit checks. Base rate uses complete
-            forward 7-day region-week windows across the same calendar span.
+        window_days: +/- day window for hit and base-rate checks.
 
     Returns:
         dict with region, n_predictions, hits, hit_rate, base_rate, lift, p_value.
@@ -114,16 +99,11 @@ def score_region(region_df: pd.DataFrame, region_name: str, window_days: int = W
         logger.info("%s: no rows available for scoring", region_name)
         return result
 
-    dates = pd.to_datetime(region_df["date"])
-    base_start = dates.min().replace(day=1)
-    base_end = dates.max() + pd.offsets.MonthEnd(0)
-
     region_df = region_df.copy()
-    region_df["date"] = dates.dt.date
+    region_df["date"] = pd.to_datetime(region_df["date"]).dt.date
     region_df["month"] = region_df["date"].apply(lambda d: (d.year, d.month))
 
     occurred = _daily_eq_occurred(region_df)
-    base_occurred = _daily_eq_occurred(region_df, start=base_start, end=base_end)
 
     # Step 1: single highest-risk-score row per calendar month -> "the prediction"
     idx = region_df.groupby("month")["risk_score"].idxmax()
@@ -137,8 +117,8 @@ def score_region(region_df: pd.DataFrame, region_name: str, window_days: int = W
     )
     hit_rate = hits / n_predictions if n_predictions else 0.0
 
-    # Step 4: base_rate = fraction of candidate region-weeks with >=1 actual EQ
-    base_rate = _region_week_base_rate(base_occurred)
+    # Step 4: base_rate = fraction of all centered +/- windows with >=1 actual EQ
+    base_rate = _centered_window_base_rate(occurred, window_days)
 
     lift = hit_rate / base_rate if base_rate > 0 else float("nan")
 

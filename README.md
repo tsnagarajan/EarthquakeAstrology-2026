@@ -2,7 +2,7 @@
 
 A machine learning system that combines astrological planetary position data with historical earthquake records (M5.5+) to predict earthquake-risk dates and regions. Trains on 1900–2000 data, validates on 2000–2026, and produces predictions for the remainder of 2026. Predictions are served through a Next.js web app as an interactive calendar.
 
-**Status: experimental / research project.** The current model (XGBoost) scores F1 = 0.0028 and MCC = 0.0014 on the 2010–2026 holdout — barely above chance. See [Methodology](#methodology--current-results) below before treating any prediction as reliable.
+**Status: experimental / research project.** The current model (XGBoost) scores F1 = 0.0026 and MCC = 0.0009 on the 2000–2026 holdout — barely above chance. See [Methodology](#methodology--current-results) below before treating any prediction as reliable.
 
 ## How It Works
 
@@ -75,11 +75,12 @@ uv run pytest
 ## Methodology & Current Results
 
 - Model: XGBoost (selected over Logistic Regression by MCC)
-- Train: 1900–2000 (downsampled negatives), Eval: 2010–2026 holdout
-- Decision threshold: 0.150 (from PR curve)
-- F1 = 0.0028, MCC = 0.0014 — the model performs close to random on the holdout set
+- Model selection train split: pre-2000 downsampled negatives; Eval: 2000–2026 holdout
+- Decision threshold: 0.5285 (best F1 from PR curve)
+- F1 = 0.0026, MCC = 0.0009 — the model performs close to random on the holdout set
 - Full metrics: [`data/models/eval_report.json`](data/models/eval_report.json)
 - The web app's Methodology page renders these numbers live from that report
+- Regional Mexico/Peru/Chile scores are post-retrain sanity checks, not clean holdout validation, because the final serialized model is retrained on the full 1900–2026 range before regional scoring.
 
 ## Scope
 
